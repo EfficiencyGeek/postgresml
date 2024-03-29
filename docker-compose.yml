@@ -1,0 +1,22 @@
+# https://github.com/postgresml/postgresml/blob/v2.7.4/docker-compose.yml
+
+# usage:
+# docker compose -f docker-compose.yml up -d
+# docker compose down
+
+services:
+  postgresml:
+    container_name: postgresml
+    image: ghcr.io/postgresml/postgresml:2.8.2
+    ports:
+      - "5433:5432"
+      - "8000:8000"
+    volumes:
+      - postgresml_data:/var/lib/postgresql 
+    command:
+    # need these sleep, infinity options to keep the container in -d running mode.
+      - sleep
+      - infinity
+
+volumes:
+  postgresml_data:

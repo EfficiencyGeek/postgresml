@@ -1,0 +1,24 @@
+# https://github.com/postgresml/postgresml/blob/v2.7.4/docker-compose.yml
+
+services:
+  postgresml:
+    container_name: postgresml
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 1s
+      timeout: 5s
+      retries: 100
+    build:
+      context: ./docker
+      dockerfile: Dockerfile
+    ports:
+      - "5433:5432"
+      - "8000:8000"
+    command:
+      - sleep
+      - infinity
+    volumes:
+      - postgresml_data:/var/lib/postgresql 
+
+volumes:
+  postgresml_data:
