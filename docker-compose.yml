@@ -5,11 +5,12 @@
 # docker compose down
 
 services:
+  # user: postgresml, password:postgresml see docker\entrypoint.sh
   postgresml:
     container_name: postgresml
     image: ghcr.io/postgresml/postgresml:2.8.2
     ports:
-      - "5433:5432"
+      - "5432:5432"
       - "8000:8000"
     volumes:
       - postgresml_data:/var/lib/postgresql 
@@ -17,6 +18,45 @@ services:
     # need these sleep, infinity options to keep the container in -d running mode.
       - sleep
       - infinity
+    networks:
+      - postgresml_network        
+
+  # https://github.com/khezen/compose-postgres
+  pgadmin:
+      container_name: pgadmin
+      image: dpage/pgadmin4
+      environment:
+        PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
+        PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+        PGADMIN_CONFIG_SERVER_MODE: 'False'
+      volumes:
+        - pgadmin:/var/lib/pgadmin
+      ports:
+        - "${PGADMIN_PORT:-5050}:80"
+      networks:
+        - postgresml_network        
+      restart: unless-stopped
+
+  # https://github.com/sosedoff/pgweb/wiki/Docker
+  pgweb:
+    container_name: pgweb  # optional
+    restart: always  # optional
+    image: sosedoff/pgweb
+    ports: 
+      - "8081:8081" 
+    networks:
+      - postgresml_network        
+    links: 
+      - postgresml:postgresml  # my database container is called postgres, not db
+    environment:
+      - PGWEB_DATABASE_URL=postgres://postgresml:postgresml@postgresml:5432/postgresml
+    depends_on:
+      - postgresml  # my database container is called postgres, not db
 
 volumes:
   postgresml_data:
+  pgadmin:
+
+networks:
+  postgresml_network:
+    driver: bridge
